@@ -12,3 +12,5 @@ env/
 
 # Personal application records and backups
 data/
+# Environment variables and secrets
+.env
