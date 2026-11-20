@@ -1,0 +1,159 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Job Application Form</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+ 
+</head>
+<body>
+<header>
+    <h1>Job Application Tracker</h1>
+
+    <nav class="main-navigation">
+        <a href="{{ url_for('dashboard') }}" class="dashboard-nav-link">
+            Dashboard
+        </a>
+
+        <div class="theme-control">
+            <label for="theme-select">Theme:</label>
+
+            <select id="theme-select">
+                <option value="system">System</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+            </select>
+        </div>
+    </nav>
+</header>
+<main class="dashboard-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <p class="{{ category }}">{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+    <section class="application-form">
+    
+<form action="/add-application" method="POST">
+
+    <label for="company_name">Company Name:</label>
+    <input type="text" id="company_name" name="company_name" required>
+
+    <label for="job_title">Job Title:</label>
+    <input type="text" id="job_title" name="job_title" required>
+
+    <label for="job_location">Job Location:</label>
+    <input type="text" id="job_location" name="job_location" required>
+
+    <label for="interview_date">Interview Date:</label>
+    <input type="date" id="interview_date" name="interview_date">
+
+    <label for="application_status">Application Status:</label>
+    <select id="application_status" name="application_status">
+        <option value="Applied">Applied</option>
+        <option value="Under Review">Under Review</option>
+        <option value="Interview">Interview</option>
+        <option value="Offered">Offered</option>
+        <option value="Rejected">Rejected</option>
+    </select>
+
+    <label for="applicant_name">Applicant Name:</label>
+    <input type="text" id="applicant_name" name="applicant_name" required>
+
+    <label for="contact_email">Contact Email:</label>
+    <input type="email" id="contact_email" name="contact_email" required>
+
+    <label for="phone_number">Phone Number:</label>
+    <input type="tel" id="phone_number" name="phone_number" required>
+
+    <label for="notes">Notes:</label>
+    <textarea id="notes" name="notes"></textarea>
+
+    <button type="submit">Save Application</button>
+
+</form>
+
+    </section>
+    <section class="applications-table">
+
+    <h2>My Job Applications</h2>
+
+    <form action="{{ url_for('search_applications') }}" method="GET">
+
+        <input
+            type="text"
+            name="query"
+            placeholder="Search applications..."
+            value="{{ request.args.get('query', '') }}"
+        >
+
+        <button type="submit">Search</button>
+
+        <a href="{{ url_for('home') }}">Clear Search</a>
+
+    </form>
+
+    <div class="table-container">
+        <table>
+            <caption>My Job Applications</caption>
+        
+        <thead>
+            <tr>
+                <th>Application ID</th>
+                <th>Company</th>
+                <th>Job Title</th>
+                <th>Job Location</th>
+                <th>Application Date</th>
+                <th>Interview Date</th>
+                <th>Status</th>
+                <th>Applicant Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for application in applications %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('application_details', application_id=application.application_id) }}">
+                            {{ application.application_id }}
+                        </a>
+                    </td>
+                    <td>{{ application.company_name }}</td>
+                    <td>{{ application.job_title }}</td>
+                    <td>{{ application.job_location }}</td>
+                    <td>{{ application.application_date }}</td>
+                    <td>
+                        {{ application.interview_date or "Not scheduled" }}
+                    </td>
+                    <td>{{ application.application_status }}</td>
+                    <td>{{ application.applicant_name }}</td>
+                    <td>{{ application.contact_email }}</td>
+                    <td>{{ application.phone_number }}</td>
+                    <td>{{ application.notes or "No notes" }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="11">No applications found.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</section>
+
+</main>
+<footer>
+    <p>Job Application Tracker</p>
+</footer>
+<script src="{{ url_for('static', filename='theme.js') }}"></script>
+</body>
+
+
+</html>

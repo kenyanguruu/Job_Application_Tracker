@@ -1,0 +1,363 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Job Application Tracker</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="dashboard-page">
+
+
+<header class="dashboard-header">
+
+    <div class="dashboard-brand">
+        <div class="brand-icon">JT</div>
+        <div>
+            <h1>JobTracker</h1>
+            <p>Application Management</p>
+        </div>
+    </div>
+
+    <nav class="dashboard-navigation">
+        <a href="{{ url_for('home') }}" class="dashboard-nav-link">
+            <svg viewBox="0 0 24 24">
+                <path d="m3 10 9-7 9 7"></path>
+                <path d="M5 9v12h14V9"></path>
+                <path d="M9 21v-7h6v7"></path>
+            </svg>
+            Applications
+        </a>
+
+        <div class="theme-control">
+            <label for="theme-select">Theme:</label>
+            <select id="theme-select">
+                <option value="system">System</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+            </select>
+        </div>
+    </nav>
+
+</header>
+
+
+<main class="dashboard-main">
+
+    <section class="dashboard-welcome">
+        <div>
+            <p class="dashboard-eyebrow">OVERVIEW</p>
+            <h2>Your Job Search Dashboard</h2>
+            <p>Track your progress and stay on top of your career journey.</p>
+        </div>
+
+        <div class="dashboard-date">
+            <span>YOUR PROGRESS</span>
+            <strong>One step at a time.</strong>
+        </div>
+    </section>
+
+
+    <!-- STATISTIC CARDS -->
+
+    <section class="stats-grid">
+
+        <a href="{{ url_for('home') }}" class="stat-card stat-card-link">
+            <div class="stat-icon blue-icon">
+                <svg viewBox="0 0 24 24">
+                    <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                    <path d="M8 2v4M16 2v4M3 10h18"></path>
+                </svg>
+            </div>
+
+            <p>Total Applications</p>
+            <h3>{{ dashboard.total_applications }}</h3>
+            <span>All recorded applications</span>
+        </a>
+
+
+        <a href="{{ url_for('status_applications', status='Under Review') }}"
+            class="stat-card stat-card-link">
+            <div class="stat-icon purple-icon">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 7v5l3 2"></path>
+                </svg>
+            </div>
+
+            <p>Under Review</p>
+            <h3>{{ dashboard.under_review }}</h3>
+            <span>Awaiting employer feedback</span>
+        </a>
+
+
+        <a href="{{ url_for('status_applications', status='Interview') }}"
+            class="stat-card stat-card-link">
+            <div class="stat-icon green-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M8 3h8l4 4v14H4V3z"></path>
+                    <path d="M8 3v5h8V3M8 15l2.5 2.5L16 12"></path>
+                </svg>
+            </div>
+
+            <p>Interviews</p>
+            <h3>{{ dashboard.interview }}</h3>
+            <span>Applications at interview stage</span>
+        </a>
+
+
+        <a href="{{ url_for('status_applications', status='Offered') }}"
+            class="stat-card stat-card-link">
+            <div class="stat-icon orange-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M3 7h18v13H3z"></path>
+                    <path d="M3 7l9 7 9-7M8 7V4h8v3"></path>
+                </svg>
+            </div>
+
+            <p>Offers Received</p>
+            <h3>{{ dashboard.offered }}</h3>
+            <span>Successful applications</span>
+        </a>
+
+    </section>
+
+
+    <!-- STATUS BREAKDOWN -->
+
+    <section class="dashboard-content-grid">
+
+        <div class="dashboard-panel">
+
+            <div class="panel-heading">
+                <div>
+                    <h3>Application Breakdown</h3>
+                    <p>Current status of your applications</p>
+                </div>
+                <span class="panel-icon">◈</span>
+            </div>
+
+            {% set statuses = [
+                ("Applied", dashboard.applied, "#3b82f6"),
+                ("Under Review", dashboard.under_review, "#8b5cf6"),
+                ("Interview", dashboard.interview, "#10b981"),
+                ("Offered", dashboard.offered, "#f59e0b"),
+                ("Rejected", dashboard.rejected, "#ef4444")
+            ] %}
+
+            {% for name, count, color in statuses %}
+
+                {% if dashboard.total_applications > 0 %}
+                    {% set percentage = (count / dashboard.total_applications * 100) %}
+                {% else %}
+                    {% set percentage = 0 %}
+                {% endif %}
+
+                <div class="status-item">
+
+                    <a href="{{ url_for('status_applications', status=name) }}"
+                    class="status-link">
+
+                        <div class="status-info">
+                            <span>
+                                <span class="status-dot"
+                                    style="background-color: {{ color }};"></span>
+                                {{ name }}
+                            </span>
+
+                            <strong>{{ count }} →</strong>
+                        </div>
+
+                        
+
+                    </a>
+
+                    <div class="progress-track">
+                        <div class="progress-fill"
+                             style="width: {{ percentage }}%; background-color: {{ color }};">
+                        </div>
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+
+        <!-- PERFORMANCE -->
+
+        <div class="dashboard-panel">
+
+            <div class="panel-heading">
+                <div>
+                    <h3>Application Performance</h3>
+                    <p>How your job search is progressing</p>
+                </div>
+
+                <span class="panel-icon">↗</span>
+            </div>
+
+            <div class="performance-card">
+                <div class="performance-icon green-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M3 17l6-6 4 4 8-9"></path>
+                        <path d="M15 6h6v6"></path>
+                    </svg>
+                </div>
+
+                <div>
+                    <p>Interview Rate</p>
+                    <h3>{{ dashboard.interview_rate }}%</h3>
+                </div>
+            </div>
+
+            <div class="performance-card">
+                <div class="performance-icon orange-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"></path>
+                    </svg>
+                </div>
+
+                <div>
+                    <p>Offer Rate</p>
+                    <h3>{{ dashboard.offer_rate }}%</h3>
+                </div>
+            </div>
+
+            <div class="performance-card">
+                <div class="performance-icon blue-icon">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                        <path d="M8 2v4M16 2v4M3 10h18"></path>
+                    </svg>
+                </div>
+
+                <div>
+                    <p>Scheduled Interviews</p>
+                    <h3>{{ dashboard.scheduled_interviews }}</h3>
+                </div>
+            </div>
+            
+        </div>
+
+    </section>
+
+<section class="interview-schedule">
+
+    <div class="schedule-heading">
+        <div>
+            <h2>Upcoming Interviews</h2>
+            <p>Keep track of your next interview opportunities.</p>
+        </div>
+
+        <span class="schedule-count">
+            {{ dashboard.upcoming_interviews }} Upcoming
+        </span>
+    </div>
+
+    {% if dashboard.upcoming_interview_list %}
+
+        <div class="interview-list">
+
+            {% for application in dashboard.upcoming_interview_list %}
+
+                <a href="{{ url_for('application_details', application_id=application.application_id) }}"
+                   class="interview-item">
+
+                    <div class="interview-company">
+                        <h3>{{ application.company_name }}</h3>
+                        <p>{{ application.job_title }}</p>
+                    </div>
+
+                    <div class="interview-date">
+                        <span>Interview Date</span>
+                        <strong>{{ application.interview_date }}</strong>
+
+                        {% if application.days_remaining == 0 %}
+                            <span class="countdown-badge today">Today!</span>
+
+                        {% elif application.days_remaining == 1 %}
+                            <span class="countdown-badge tomorrow">Tomorrow</span>
+
+                        {% else %}
+                            <span class="countdown-badge upcoming">
+                                In {{ application.days_remaining }} days
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <span class="view-interview">View Details →</span>
+
+                </a>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="empty-schedule">
+            <h3>No Upcoming Interviews</h3>
+            <p>Your scheduled interviews will appear here.</p>
+        </div>
+
+    {% endif %}
+
+</section>
+
+
+    <section class="dashboard-footer-card">
+        <div class="footer-card-icon">✦</div>
+
+        <div>
+            <h3>Keep moving forward!</h3>
+            <p>Every application is another opportunity. Stay consistent with your job search.</p>
+        </div>
+
+        <a href="{{ url_for('home') }}">View Applications →</a>
+    </section>
+
+</main>
+
+<footer class="dashboard-bottom">
+    <p>JobTracker &copy; 2026 | Your career journey, organized.</p>
+</footer>
+
+<header class="dashboard-header">
+
+    <div class="dashboard-brand">
+        <div class="brand-icon">JT</div>
+        <div>
+            <h1>JobTracker</h1>
+            <p>Application Management</p>
+        </div>
+    </div>
+
+    <nav class="dashboard-navigation">
+        <a href="{{ url_for('home') }}" class="dashboard-nav-link">
+            <svg viewBox="0 0 24 24">
+                <path d="m3 10 9-7 9 7"></path>
+                <path d="M5 9v12h14V9"></path>
+                <path d="M9 21v-7h6v7"></path>
+            </svg>
+            Applications
+        </a>
+
+        <div class="theme-control">
+            <label for="theme-select">Theme:</label>
+            <select id="theme-select">
+                <option value="system">System</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+            </select>
+        </div>
+    </nav>
+
+</header>
+<script src="{{ url_for('static', filename='theme.js') }}"></script>
+</body>
+</html>

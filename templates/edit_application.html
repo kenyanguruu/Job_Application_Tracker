@@ -1,0 +1,96 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Application</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+
+<header class="edit-header">
+
+    <h1>Edit Application</h1>
+
+    <nav class="edit-navigation">
+
+        <a href="{{ url_for('application_details', application_id=application.application_id) }}"
+           class="dashboard-nav-link">
+            Back to Details
+        </a>
+
+        <div class="theme-control">
+            <label for="theme-select">Theme:</label>
+
+            <select id="theme-select">
+                <option value="system">System</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+            </select>
+        </div>
+
+    </nav>
+
+</header>
+
+
+<main class="application-form">
+
+    <h2>Edit {{ application.company_name }}</h2>
+
+    <form action="{{ url_for('update_application', application_id=application.application_id) }}" method="POST">
+
+        <label for="company_name">Company Name:</label>
+        <input type="text" id="company_name" name="company_name"
+               value="{{ application.company_name }}" required>
+
+        <label for="job_title">Job Title:</label>
+        <input type="text" id="job_title" name="job_title"
+               value="{{ application.job_title }}" required>
+
+        <label for="job_location">Job Location:</label>
+        <input type="text" id="job_location" name="job_location"
+               value="{{ application.job_location }}" required>
+
+        <label for="interview_date">Interview Date:</label>
+        <input type="date" id="interview_date" name="interview_date"
+               value="{{ application.interview_date }}">
+
+        <label for="application_status">Application Status:</label>
+        <select id="application_status" name="application_status" required>
+            {% for status in ["Applied", "Under Review", "Interview", "Offered", "Rejected"] %}
+                <option value="{{ status }}"
+                    {% if application.application_status == status %}selected{% endif %}>
+                    {{ status }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <label for="applicant_name">Applicant Name:</label>
+        <input type="text" id="applicant_name" name="applicant_name"
+               value="{{ application.applicant_name }}" required>
+
+        <label for="contact_email">Contact Email:</label>
+        <input type="email" id="contact_email" name="contact_email"
+               value="{{ application.contact_email }}" required>
+
+        <label for="phone_number">Phone Number:</label>
+        <input type="text" id="phone_number" name="phone_number"
+               value="{{ application.phone_number }}" required>
+
+        <label for="notes">Notes:</label>
+        <textarea id="notes" name="notes">{{ application.notes }}</textarea>
+
+        <button type="submit">Save Changes</button>
+
+    </form>
+
+</main>
+
+<footer>
+    <p>Job Application Tracker</p>
+</footer>
+<script src="{{ url_for('static', filename='theme.js') }}"></script>
+</body>
+</html>
