@@ -567,7 +567,15 @@ def recover_unverified_account():
         user = User.query.filter_by(email=email).first()
 
         if user and not user.email_verified:
-            begin_otp_flow(email, "registration_recovery")
+            sent, message = begin_otp_flow(
+                email,
+                "registration_recovery",
+            )
+
+            if not sent:
+                flash(message, "error")
+                return redirect(url_for("recover_unverified_account"))
+
         else:
             # Keep the response generic for account privacy.
             session.clear()
