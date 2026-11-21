@@ -552,6 +552,41 @@ def forgot_password():
     return render_template("forgot_password.html")
 
 
+@app.route("/recover-unverified-account", methods=["GET", "POST"])
+def recover_unverified_account():
+    if current_user.is_authenticated:
+        return redirect(url_for("dashboard"))
+
+    if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()
+
+        if not email or len(email) > 150 or not valid_email(email):
+            flash("Please enter a valid email address.", "error")
+            return redirect(url_for("recover_unverified_account"))
+
+        user = User.query.filter_by(email=email).first()
+
+        if user and not user.email_verified:
+            begin_otp_flow(email, "registration_recovery")
+        else:
+            # Keep the response generic for account privacy.
+            session.clear()
+            session["pending_email"] = email
+            session["otp_purpose"] = "registration_recovery"
+
+        flash(
+            "If an unverified account exists with that email, "
+            "a recovery code will be sent.",
+            "success",
+        )
+        return redirect(url_for("verify_otp_page"))
+
+    return render_template(
+        "forgot_password.html",
+        recovery_mode=True,
+    )
+
+
 @app.route("/login-with-otp", methods=["GET", "POST"])
 def login_with_otp():
     if current_user.is_authenticated:
@@ -590,27 +625,55 @@ def login_with_otp():
 
 @app.route("/reset-password", methods=["GET", "POST"])
 def reset_password():
-    email = session.get("password_reset_email")
-    verified_at = session.get("password_reset_verified_at")
+    recovery_mode = "account_recovery_email" in session
+
+    if recovery_mode:
+        email = session.get("account_recovery_email")
+        verified_at = session.get("account_recovery_verified_at")
+    else:
+        email = session.get("password_reset_email")
+        verified_at = session.get("password_reset_verified_at")
 
     if not email or not verified_at:
         flash("Please verify your email before resetting your password.", "error")
+
+        if recovery_mode:
+            return redirect(url_for("recover_unverified_account"))
+
         return redirect(url_for("forgot_password"))
 
-    # The password-reset authorization expires after five minutes.
+    # The authorization expires after five minutes.
     if time.time() - verified_at > 300:
+        session.pop("account_recovery_email", None)
+        session.pop("account_recovery_verified_at", None)
         session.pop("password_reset_email", None)
         session.pop("password_reset_verified_at", None)
-        flash("Your password-reset session has expired. Request a new code.", "error")
+
+        flash("Your verification session has expired. Request a new code.", "error")
+
+        if recovery_mode:
+            return redirect(url_for("recover_unverified_account"))
+
         return redirect(url_for("forgot_password"))
 
     user = User.query.filter_by(email=email).first()
 
-    if not user or not user.email_verified:
+    # Recovery is only for existing unverified accounts.
+    if (
+        not user
+        or (recovery_mode and user.email_verified)
+        or (not recovery_mode and not user.email_verified)
+    ):
+        session.pop("account_recovery_email", None)
+        session.pop("account_recovery_verified_at", None)
         session.pop("password_reset_email", None)
         session.pop("password_reset_verified_at", None)
 
         flash("We could not verify this account. Please try again.", "error")
+
+        if recovery_mode:
+            return redirect(url_for("recover_unverified_account"))
+
         return redirect(url_for("forgot_password"))
 
     if request.method == "POST":
@@ -627,16 +690,28 @@ def reset_password():
 
         user.set_password(password)
 
+        # Only verify an unverified account after its recovery is completed.
+        if recovery_mode:
+            user.email_verified = True
+
         try:
             db.session.commit()
         except SQLAlchemyError:
             db.session.rollback()
-            app.logger.exception("Password reset database operation failed.")
+            app.logger.exception("Password update database operation failed.")
             flash("We could not update your password. Please try again.", "error")
             return redirect(url_for("reset_password"))
 
+        session.pop("account_recovery_email", None)
+        session.pop("account_recovery_verified_at", None)
         session.pop("password_reset_email", None)
         session.pop("password_reset_verified_at", None)
+
+        if recovery_mode:
+            return finish_login(
+                user,
+                "Your account has been recovered and verified successfully.",
+            )
 
         return finish_login(user, "Your password has been reset successfully.")
 
@@ -653,7 +728,12 @@ def verify_otp_page():
     email = session.get("pending_email")
     purpose = session.get("otp_purpose")
 
-    allowed_purposes = ("registration", "login", "password_reset")
+    allowed_purposes = (
+        "registration",
+        "registration_recovery",
+        "login",
+        "password_reset",
+    )
 
     if not email or purpose not in allowed_purposes:
         flash("Please start the verification process again.", "error")
@@ -661,15 +741,17 @@ def verify_otp_page():
 
     user = User.query.filter_by(email=email).first()
 
-    # Registration requires an existing pending account.
     if not user and purpose == "registration":
         clear_pending_authentication()
         flash("Account not found. Please register again.", "error")
         return redirect(url_for("register"))
 
-    # Unknown accounts cannot verify login or password-reset codes.
-    # Keep the response generic to avoid revealing registered emails.
-    if not user and purpose in ("login", "password_reset"):
+    # Unknown accounts cannot complete authentication or recovery.
+    if not user and purpose in (
+        "login",
+        "password_reset",
+        "registration_recovery",
+    ):
         if request.method == "POST":
             flash("Invalid or expired verification code.", "error")
             return redirect(url_for("verify_otp_page"))
@@ -680,8 +762,20 @@ def verify_otp_page():
             purpose=purpose,
         )
 
-    # Unverified accounts cannot use login or password-reset OTP flows.
+    # Login and ordinary password reset require verified accounts.
     if user and purpose in ("login", "password_reset") and not user.email_verified:
+        if request.method == "POST":
+            flash("Invalid or expired verification code.", "error")
+            return redirect(url_for("verify_otp_page"))
+
+        return render_template(
+            "verify_otp.html",
+            email=email,
+            purpose=purpose,
+        )
+
+    # Recovery requires an existing unverified account.
+    if user and purpose == "registration_recovery" and user.email_verified:
         if request.method == "POST":
             flash("Invalid or expired verification code.", "error")
             return redirect(url_for("verify_otp_page"))
@@ -703,7 +797,7 @@ def verify_otp_page():
             flash("Invalid or expired verification code.", "error")
             return redirect(url_for("verify_otp_page"))
 
-        # Complete registration.
+        # Complete ordinary registration.
         if purpose == "registration":
             user.email_verified = True
 
@@ -723,7 +817,19 @@ def verify_otp_page():
                 "Your account has been verified successfully.",
             )
 
-        # Authorize password reset after successful OTP verification.
+        # Authorize recovery of an unverified account.
+        if purpose == "registration_recovery":
+            session["account_recovery_email"] = email
+            session["account_recovery_verified_at"] = time.time()
+            clear_pending_authentication()
+
+            flash(
+                "Email verified. You can now create a new password.",
+                "success",
+            )
+            return redirect(url_for("reset_password"))
+
+        # Authorize an ordinary password reset.
         if purpose == "password_reset":
             session["password_reset_email"] = email
             session["password_reset_verified_at"] = time.time()
@@ -755,7 +861,12 @@ def resend_otp():
     email = session.get("pending_email")
     purpose = session.get("otp_purpose")
 
-    allowed_purposes = ("registration", "login", "password_reset")
+    allowed_purposes = (
+        "registration",
+        "registration_recovery",
+        "login",
+        "password_reset",
+    )
 
     if not email or purpose not in allowed_purposes:
         flash("Please start the process again.", "error")
@@ -763,7 +874,6 @@ def resend_otp():
 
     user = User.query.filter_by(email=email).first()
 
-    # Registration: the account must exist and remain unverified.
     if purpose == "registration":
         if not user:
             clear_pending_authentication()
@@ -775,12 +885,22 @@ def resend_otp():
             flash("This account is already verified. Please log in.", "success")
             return redirect(url_for("login"))
 
-    # Login and password reset: do not reveal whether an account exists.
+    # Login and password reset require verified accounts.
     if purpose in ("login", "password_reset"):
         if not user or not user.email_verified:
             flash(
                 "If a verified account exists with that email, "
                 "a new verification code will be sent.",
+                "success",
+            )
+            return redirect(url_for("verify_otp_page"))
+
+    # Recovery requires an existing unverified account.
+    if purpose == "registration_recovery":
+        if not user or user.email_verified:
+            flash(
+                "If an unverified account exists with that email, "
+                "a recovery code will be sent.",
                 "success",
             )
             return redirect(url_for("verify_otp_page"))
@@ -793,11 +913,16 @@ def resend_otp():
             "a new verification code will be sent.",
             "success",
         )
+    elif purpose == "registration_recovery":
+        flash(
+            "If an unverified account exists with that email, "
+            "a recovery code will be sent.",
+            "success",
+        )
+    elif sent:
+        flash("A new verification code has been sent.", "success")
     else:
-        if sent:
-            flash("A new verification code has been sent.", "success")
-        else:
-            flash(message, "error")
+        flash(message, "error")
 
     return redirect(url_for("verify_otp_page"))
 

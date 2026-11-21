@@ -222,3 +222,125 @@ def test_mismatched_new_passwords_are_rejected(client):
     user = User.query.filter_by(email="test@example.com").first()
 
     assert user.check_password("TestPassword123!")
+
+
+def test_unverified_account_can_request_recovery_code(
+    client,
+    monkeypatch,
+):
+    user = User(
+        name="Unverified User",
+        email="unverified@example.com",
+        email_verified=False,
+    )
+    user.set_password("OriginalPassword123!")
+    db.session.add(user)
+    db.session.commit()
+
+    monkeypatch.setattr(
+        app_module,
+        "send_verification_code",
+        lambda email, purpose: (True, "Code sent."),
+    )
+
+    response = client.post(
+        "/recover-unverified-account",
+        data={"email": "unverified@example.com"},
+    )
+
+    assert response.status_code == 302
+    assert "/verify-otp" in response.location
+
+    with client.session_transaction() as session:
+        assert session["pending_email"] == "unverified@example.com"
+        assert session["otp_purpose"] == "registration_recovery"
+
+
+def test_recovery_otp_allows_new_password_and_verifies_account(
+    client,
+    monkeypatch,
+):
+    user = User(
+        name="Unverified User",
+        email="unverified@example.com",
+        email_verified=False,
+    )
+    user.set_password("OriginalPassword123!")
+    db.session.add(user)
+    db.session.commit()
+
+    monkeypatch.setattr(
+        app_module,
+        "verify_otp",
+        lambda email, purpose, otp: (
+            email == "unverified@example.com"
+            and purpose == "registration_recovery"
+            and otp == "123456"
+        ),
+    )
+
+    with client.session_transaction() as session:
+        session["pending_email"] = "unverified@example.com"
+        session["otp_purpose"] = "registration_recovery"
+
+    # Verify ownership of the email address.
+    response = client.post(
+        "/verify-otp",
+        data={"otp": "123456"},
+    )
+
+    assert response.status_code == 302
+    assert "/reset-password" in response.location
+
+    with client.session_transaction() as session:
+        assert session["account_recovery_email"] == "unverified@example.com"
+        assert "account_recovery_verified_at" in session
+
+    # Set a new password.
+    response = client.post(
+        "/reset-password",
+        data={
+            "password": "NewSecurePassword123!",
+            "confirm_password": "NewSecurePassword123!",
+        },
+    )
+
+    assert response.status_code == 302
+    assert "/dashboard" in response.location
+
+    updated_user = db.session.get(User, user.id)
+
+    assert updated_user.email_verified is True
+    assert updated_user.check_password("NewSecurePassword123!")
+
+    with client.session_transaction() as session:
+        assert "_user_id" in session
+        assert "account_recovery_email" not in session
+        assert "account_recovery_verified_at" not in session
+
+
+def test_recovery_session_expiry_is_rejected(client):
+    user = User(
+        name="Unverified User",
+        email="unverified@example.com",
+        email_verified=False,
+    )
+    user.set_password("OriginalPassword123!")
+    db.session.add(user)
+    db.session.commit()
+
+    with client.session_transaction() as session:
+        session["account_recovery_email"] = "unverified@example.com"
+        session["account_recovery_verified_at"] = 1
+
+    response = client.get("/reset-password")
+
+    assert response.status_code == 302
+    assert "/recover-unverified-account" in response.location
+
+    with client.session_transaction() as session:
+        assert "account_recovery_email" not in session
+        assert "account_recovery_verified_at" not in session
+
+    updated_user = db.session.get(User, user.id)
+    assert updated_user.email_verified is False

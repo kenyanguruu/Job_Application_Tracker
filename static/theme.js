@@ -67,3 +67,39 @@
         });
     }
 })();
+
+    // Show/hide password fields across all authentication pages.
+    document.querySelectorAll('input[type="password"]').forEach((input) => {
+        let wrapper = input.closest(".password-input-wrapper");
+
+        if (!wrapper) {
+            wrapper = document.createElement("div");
+            wrapper.className = "password-input-wrapper";
+
+            input.parentNode.insertBefore(wrapper, input);
+            wrapper.appendChild(input);
+        }
+
+        let toggle = wrapper.querySelector(".password-toggle");
+
+        if (!toggle) {
+            toggle = document.createElement("button");
+            toggle.type = "button";
+            toggle.className = "password-toggle";
+            toggle.setAttribute("aria-label", "Show password");
+            toggle.setAttribute("aria-pressed", "false");
+            toggle.innerHTML = '<span aria-hidden="true">👁</span>';
+            wrapper.appendChild(toggle);
+        }
+
+        toggle.addEventListener("click", () => {
+            const showingPassword = input.type === "password";
+
+            input.type = showingPassword ? "text" : "password";
+            toggle.setAttribute("aria-label", showingPassword ? "Hide password" : "Show password");
+            toggle.setAttribute("aria-pressed", String(showingPassword));
+            toggle.innerHTML = showingPassword
+                ? '<span aria-hidden="true">🙈</span>'
+                : '<span aria-hidden="true">👁</span>';
+        });
+    });

@@ -1,4 +1,4 @@
-```html
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,7 +30,6 @@
     </header>
 
     <main class="auth-container">
-
         <section class="auth-card">
 
             <h1>Welcome back</h1>
@@ -96,20 +95,36 @@
                 <div class="form-group">
                     <label for="password">Password</label>
 
-                    <input type="password"
-                           id="password"
-                           name="password"
-                           placeholder="Enter your password"
-                           autocomplete="current-password"
-                           required>
+                    <div class="password-input-wrapper">
+                        <input type="password"
+                               id="password"
+                               name="password"
+                               placeholder="Enter your password"
+                               autocomplete="current-password"
+                               required>
+                        <button type="button"
+                                class="password-toggle"
+                                data-password-toggle="password"
+                                aria-label="Show password"
+                                aria-pressed="false">
+                            <span aria-hidden="true">👁</span>
+                        </button>
+                    </div>
                 </div>
 
                 <button type="submit">Sign in</button>
 
             </form>
 
-                        <p>
+            <p>
                 <a href="{{ url_for('forgot_password') }}">Forgot your password?</a>
+            </p>
+
+            <p>
+                Have an unverified account and forgotten your password?
+                <a href="{{ url_for('recover_unverified_account') }}">
+                    Recover your account
+                </a>
             </p>
 
             <p>
@@ -127,9 +142,7 @@
             </div>
 
         </section>
-
     </main>
 
 </body>
 </html>
-```

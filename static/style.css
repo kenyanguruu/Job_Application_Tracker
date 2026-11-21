@@ -459,3 +459,62 @@ textarea { min-height: 100px; resize: vertical; }
     height: 20px;
     flex-shrink: 0;
 }
+
+
+/* PASSWORD VISIBILITY TOGGLE */
+.auth-card .password-input-wrapper {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+.auth-card .password-input-wrapper > input {
+    display: block;
+    width: 100%;
+    padding-right: 3.5rem;
+}
+
+.auth-card .password-input-wrapper > .password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    left: auto;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+
+    margin: 0;
+    padding: 0;
+
+    transform: translateY(-50%);
+    border: none;
+    border-radius: 6px;
+
+    background: transparent;
+    color: var(--text-primary);
+
+    font-size: 18px;
+    line-height: 1;
+
+    cursor: pointer;
+    box-shadow: none;
+}
+
+.auth-card .password-input-wrapper > .password-toggle:hover {
+    background: transparent;
+    color: var(--brand);
+    transform: translateY(-50%);
+    box-shadow: none;
+    opacity: 0.75;
+}
+
+.auth-card .password-input-wrapper > .password-toggle:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+}
