@@ -108,6 +108,15 @@
 
             </form>
 
+                        <p>
+                <a href="{{ url_for('forgot_password') }}">Forgot your password?</a>
+            </p>
+
+            <p>
+                Want to sign in without a password?
+                <a href="{{ url_for('login_with_otp') }}">Sign in with a code</a>
+            </p>
+
             <p>
                 Don't have an account?
                 <a href="{{ url_for('register') }}">Create an account</a>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0f172a">
-    <title>Email Verification | JobTracker</title>
+    <title>Verify Your Code | JobTracker</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="{{ url_for('static', filename='theme.js') }}" defer></script>
 </head>
@@ -26,8 +26,16 @@
 
     <main class="auth-container">
         <section class="auth-card">
-            <h1>Check your email</h1>
-            <p>Enter the six-digit verification code we sent to this address.</p>
+            {% if purpose == "registration" %}
+                <h1>Verify your email</h1>
+                <p>Enter the six-digit code to complete your account registration.</p>
+            {% elif purpose == "password_reset" %}
+                <h1>Reset your password</h1>
+                <p>Enter the six-digit code to verify your identity before resetting your password.</p>
+            {% else %}
+                <h1>Check your email</h1>
+                <p>Enter the six-digit code to sign in to your account.</p>
+            {% endif %}
             <div class="otp-email">{{ email }}</div>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -47,12 +55,18 @@
                            aria-describedby="otp-help" required autofocus>
                     <small id="otp-help" class="auth-help">The code expires after five minutes.</small>
                 </div>
-                <button type="submit">Verify and continue</button>
+                {% if purpose == "password_reset" %}
+                    <button type="submit">Verify and reset password</button>
+                {% elif purpose == "registration" %}
+                    <button type="submit">Verify email</button>
+                {% else %}
+                    <button type="submit">Verify and sign in</button>
+                {% endif %}
             </form>
 
             <form method="POST" action="{{ url_for('resend_otp') }}" class="auth-secondary-form">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit">Resend verification code</button>
+                <button type="submit">Resend code</button>
             </form>
 
             <a class="auth-back-link" href="{{ url_for('login') }}">Back to sign in</a>

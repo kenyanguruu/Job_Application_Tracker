@@ -1,4 +1,3 @@
-
 import os
 
 import resend
@@ -17,10 +16,7 @@ def send_otp_email(recipient_email, otp):
         print("Email delivery failed: RESEND_API_KEY is missing.")
         return False
 
-    sender_email = os.getenv(
-        "EMAIL_FROM",
-        "JobTracker <onboarding@resend.dev>"
-    )
+    sender_email = os.getenv("EMAIL_FROM", "JobTracker <onboarding@resend.dev>")
 
     resend.api_key = api_key
 
@@ -39,14 +35,16 @@ JobTracker Team
 """
 
     try:
-        result = resend.Emails.send({
-            "from": sender_email,
-            "to": [recipient_email],
-            "subject": "Your JobTracker Verification Code",
-            "text": message,
-        })
+        result = resend.Emails.send(
+            {
+                "from": sender_email,
+                "to": [recipient_email],
+                "subject": "Your JobTracker Verification Code",
+                "text": message,
+            }
+        )
 
-        print("OTP email sent successfully:", result)
+        print("OTP email sent successfully.")
         return True
 
     except Exception as error:

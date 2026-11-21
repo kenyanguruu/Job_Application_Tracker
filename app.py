@@ -1,5 +1,6 @@
 import os
 import re
+import time
 from datetime import date, timedelta
 from werkzeug.middleware.proxy_fix import ProxyFix
 from dotenv import load_dotenv
@@ -291,13 +292,13 @@ def register():
             return redirect(url_for("register"))
 
         user = User.query.filter_by(email=email).first()
+        created_user = False
 
         if user and user.email_verified:
             flash("An account already exists with this email. Please log in.", "error")
             return redirect(url_for("login"))
 
         if user:
-            # Do not silently replace the credentials of an existing pending account.
             if not user.check_password(password):
                 flash(
                     "An unverified account already uses this email. "
@@ -306,8 +307,6 @@ def register():
                 )
                 return redirect(url_for("login"))
 
-            # Preserve the existing account name and password. The owner must
-            # prove control of the email address using a fresh registration OTP.
         else:
             user = User(
                 name=name,
@@ -319,6 +318,7 @@ def register():
 
             try:
                 db.session.commit()
+                created_user = True
             except IntegrityError:
                 db.session.rollback()
                 flash("An account already exists with this email.", "error")
@@ -330,7 +330,20 @@ def register():
                 return redirect(url_for("register"))
 
         sent, message = begin_otp_flow(email, "registration")
+
         if not sent:
+            if created_user:
+                try:
+                    OTPVerification.query.filter_by(
+                        email=email,
+                        purpose="registration",
+                    ).delete()
+                    db.session.delete(user)
+                    db.session.commit()
+                except SQLAlchemyError:
+                    db.session.rollback()
+                    app.logger.exception("Could not clean up failed registration.")
+
             flash(message, "error")
             return redirect(url_for("register"))
 
@@ -499,6 +512,138 @@ def google_callback():
 
 
 # --------------------------------------------------
+# PASSWORD RESET AND PASSWORDLESS LOGIN
+# --------------------------------------------------
+
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    if current_user.is_authenticated:
+        return redirect(url_for("dashboard"))
+
+    if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()
+
+        if not email or len(email) > 150 or not valid_email(email):
+            flash("Please enter a valid email address.", "error")
+            return redirect(url_for("forgot_password"))
+
+        user = User.query.filter_by(email=email).first()
+
+        if user and user.email_verified:
+            sent, message = begin_otp_flow(email, "password_reset")
+
+            if not sent:
+                session["pending_email"] = email
+                session["otp_purpose"] = "password_reset"
+        else:
+            session.clear()
+            session["pending_email"] = email
+            session["otp_purpose"] = "password_reset"
+
+        flash(
+            "If a verified account exists with that email, "
+            "a password-reset code will be sent.",
+            "success",
+        )
+
+        return redirect(url_for("verify_otp_page"))
+
+    return render_template("forgot_password.html")
+
+
+@app.route("/login-with-otp", methods=["GET", "POST"])
+def login_with_otp():
+    if current_user.is_authenticated:
+        return redirect(url_for("dashboard"))
+
+    if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()
+
+        if not email or len(email) > 150 or not valid_email(email):
+            flash("Please enter a valid email address.", "error")
+            return redirect(url_for("login_with_otp"))
+
+        user = User.query.filter_by(email=email).first()
+
+        if user and user.email_verified:
+            sent, message = begin_otp_flow(email, "login")
+
+            if not sent:
+                session["pending_email"] = email
+                session["otp_purpose"] = "login"
+        else:
+            session.clear()
+            session["pending_email"] = email
+            session["otp_purpose"] = "login"
+
+        flash(
+            "If a verified account exists with that email, "
+            "a login code will be sent.",
+            "success",
+        )
+
+        return redirect(url_for("verify_otp_page"))
+
+    return render_template("login_with_otp.html")
+
+
+@app.route("/reset-password", methods=["GET", "POST"])
+def reset_password():
+    email = session.get("password_reset_email")
+    verified_at = session.get("password_reset_verified_at")
+
+    if not email or not verified_at:
+        flash("Please verify your email before resetting your password.", "error")
+        return redirect(url_for("forgot_password"))
+
+    # The password-reset authorization expires after five minutes.
+    if time.time() - verified_at > 300:
+        session.pop("password_reset_email", None)
+        session.pop("password_reset_verified_at", None)
+        flash("Your password-reset session has expired. Request a new code.", "error")
+        return redirect(url_for("forgot_password"))
+
+    user = User.query.filter_by(email=email).first()
+
+    if not user or not user.email_verified:
+        session.pop("password_reset_email", None)
+        session.pop("password_reset_verified_at", None)
+
+        flash("We could not verify this account. Please try again.", "error")
+        return redirect(url_for("forgot_password"))
+
+    if request.method == "POST":
+        password = request.form.get("password", "")
+        confirm_password = request.form.get("confirm_password", "")
+
+        if len(password) < 12:
+            flash("Your password must contain at least 12 characters.", "error")
+            return redirect(url_for("reset_password"))
+
+        if password != confirm_password:
+            flash("Your passwords do not match.", "error")
+            return redirect(url_for("reset_password"))
+
+        user.set_password(password)
+
+        try:
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            app.logger.exception("Password reset database operation failed.")
+            flash("We could not update your password. Please try again.", "error")
+            return redirect(url_for("reset_password"))
+
+        session.pop("password_reset_email", None)
+        session.pop("password_reset_verified_at", None)
+
+        return finish_login(user, "Your password has been reset successfully.")
+
+    return render_template("reset_password.html")
+
+
+# --------------------------------------------------
 # 8. OTP VERIFICATION
 # --------------------------------------------------
 
@@ -508,28 +653,44 @@ def verify_otp_page():
     email = session.get("pending_email")
     purpose = session.get("otp_purpose")
 
-    if not email or purpose not in ("registration", "login"):
-        flash("Please start the registration or login process again.", "error")
+    allowed_purposes = ("registration", "login", "password_reset")
+
+    if not email or purpose not in allowed_purposes:
+        flash("Please start the verification process again.", "error")
         return redirect(url_for("login"))
 
     user = User.query.filter_by(email=email).first()
 
-    if not user:
+    # Registration requires an existing pending account.
+    if not user and purpose == "registration":
         clear_pending_authentication()
         flash("Account not found. Please register again.", "error")
         return redirect(url_for("register"))
 
-    if purpose == "registration" and user.email_verified:
-        clear_pending_authentication()
-        flash("This account is already verified. Please log in.", "success")
-        return redirect(url_for("login"))
+    # Unknown accounts cannot verify login or password-reset codes.
+    # Keep the response generic to avoid revealing registered emails.
+    if not user and purpose in ("login", "password_reset"):
+        if request.method == "POST":
+            flash("Invalid or expired verification code.", "error")
+            return redirect(url_for("verify_otp_page"))
 
-    if purpose == "login" and not user.email_verified:
-        clear_pending_authentication()
-        flash(
-            "Your email address has not been verified. Please register again.", "error"
+        return render_template(
+            "verify_otp.html",
+            email=email,
+            purpose=purpose,
         )
-        return redirect(url_for("register"))
+
+    # Unverified accounts cannot use login or password-reset OTP flows.
+    if user and purpose in ("login", "password_reset") and not user.email_verified:
+        if request.method == "POST":
+            flash("Invalid or expired verification code.", "error")
+            return redirect(url_for("verify_otp_page"))
+
+        return render_template(
+            "verify_otp.html",
+            email=email,
+            purpose=purpose,
+        )
 
     if request.method == "POST":
         submitted_otp = request.form.get("otp", "").strip()
@@ -542,21 +703,46 @@ def verify_otp_page():
             flash("Invalid or expired verification code.", "error")
             return redirect(url_for("verify_otp_page"))
 
+        # Complete registration.
         if purpose == "registration":
             user.email_verified = True
+
             try:
                 db.session.commit()
             except SQLAlchemyError:
                 db.session.rollback()
                 app.logger.exception("Could not complete email verification.")
-                flash("Verification could not be completed. Please try again.", "error")
+                flash(
+                    "Verification could not be completed. Please try again.",
+                    "error",
+                )
                 return redirect(url_for("verify_otp_page"))
 
-            return finish_login(user, "Your account has been verified successfully.")
+            return finish_login(
+                user,
+                "Your account has been verified successfully.",
+            )
 
+        # Authorize password reset after successful OTP verification.
+        if purpose == "password_reset":
+            session["password_reset_email"] = email
+            session["password_reset_verified_at"] = time.time()
+            clear_pending_authentication()
+
+            flash(
+                "Email verified. You can now create a new password.",
+                "success",
+            )
+            return redirect(url_for("reset_password"))
+
+        # Complete passwordless login.
         return finish_login(user, "Login successful.")
 
-    return render_template("verify_otp.html", email=email)
+    return render_template(
+        "verify_otp.html",
+        email=email,
+        purpose=purpose,
+    )
 
 
 # --------------------------------------------------
@@ -569,31 +755,49 @@ def resend_otp():
     email = session.get("pending_email")
     purpose = session.get("otp_purpose")
 
-    if not email or purpose not in ("registration", "login"):
+    allowed_purposes = ("registration", "login", "password_reset")
+
+    if not email or purpose not in allowed_purposes:
         flash("Please start the process again.", "error")
         return redirect(url_for("login"))
 
     user = User.query.filter_by(email=email).first()
-    if not user:
-        clear_pending_authentication()
-        flash("Account not found. Please start again.", "error")
-        return redirect(url_for("register"))
 
-    if purpose == "registration" and user.email_verified:
-        clear_pending_authentication()
-        flash("This account is already verified. Please log in.", "success")
-        return redirect(url_for("login"))
+    # Registration: the account must exist and remain unverified.
+    if purpose == "registration":
+        if not user:
+            clear_pending_authentication()
+            flash("Please start registration again.", "error")
+            return redirect(url_for("register"))
 
-    if purpose == "login" and not user.email_verified:
-        clear_pending_authentication()
-        flash("Your email address has not been verified.", "error")
-        return redirect(url_for("register"))
+        if user.email_verified:
+            clear_pending_authentication()
+            flash("This account is already verified. Please log in.", "success")
+            return redirect(url_for("login"))
+
+    # Login and password reset: do not reveal whether an account exists.
+    if purpose in ("login", "password_reset"):
+        if not user or not user.email_verified:
+            flash(
+                "If a verified account exists with that email, "
+                "a new verification code will be sent.",
+                "success",
+            )
+            return redirect(url_for("verify_otp_page"))
 
     sent, message = send_verification_code(email, purpose)
-    if sent:
-        flash("A new verification code has been sent.", "success")
+
+    if purpose in ("login", "password_reset"):
+        flash(
+            "If a verified account exists with that email, "
+            "a new verification code will be sent.",
+            "success",
+        )
     else:
-        flash(message, "error")
+        if sent:
+            flash("A new verification code has been sent.", "success")
+        else:
+            flash(message, "error")
 
     return redirect(url_for("verify_otp_page"))
 
