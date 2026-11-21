@@ -1,23 +1,30 @@
 
 import os
-import smtplib
 
-from email.message import EmailMessage
+import resend
+
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
 def send_otp_email(recipient_email, otp):
+    """Send an OTP verification email using the Resend API."""
 
-    message = EmailMessage()
+    api_key = os.getenv("RESEND_API_KEY")
 
-    message["Subject"] = "Your JobTracker Verification Code"
-    message["From"] = os.getenv("MAIL_USERNAME")
-    message["To"] = recipient_email
+    if not api_key:
+        print("Email delivery failed: RESEND_API_KEY is missing.")
+        return False
 
-    message.set_content(
-        f"""
+    sender_email = os.getenv(
+        "EMAIL_FROM",
+        "JobTracker <onboarding@resend.dev>"
+    )
+
+    resend.api_key = api_key
+
+    message = f"""
 Hello,
 
 Your JobTracker verification code is:
@@ -30,23 +37,16 @@ If you did not request this code, you can ignore this email.
 
 JobTracker Team
 """
-    )
 
     try:
-        with smtplib.SMTP(
-            os.getenv("MAIL_SERVER"),
-            int(os.getenv("MAIL_PORT"))
-        ) as server:
+        result = resend.Emails.send({
+            "from": sender_email,
+            "to": [recipient_email],
+            "subject": "Your JobTracker Verification Code",
+            "text": message,
+        })
 
-            server.starttls()
-
-            server.login(
-                os.getenv("MAIL_USERNAME"),
-                os.getenv("MAIL_PASSWORD")
-            )
-
-            server.send_message(message)
-
+        print("OTP email sent successfully:", result)
         return True
 
     except Exception as error:
