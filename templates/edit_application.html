@@ -3,11 +3,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Edit Application</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Edit Application | Job Application Tracker</title>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
 
+<body>
 
 <header class="edit-header">
 
@@ -35,62 +38,163 @@
 </header>
 
 
+<!-- FLASH NOTIFICATIONS -->
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+
+        <div class="flash-container">
+
+            {% for category, message in messages %}
+
+                <div class="flash-message {{ category }}" role="alert">
+
+                    <span>{{ message }}</span>
+
+                    <button type="button"
+                            class="flash-close"
+                            aria-label="Dismiss notification">
+                        &times;
+                    </button>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+{% endwith %}
+
+
 <main class="application-form">
 
-    <h2>Edit {{ application.company_name }}</h2>
+    <div class="section-title">
+        <h2>Edit {{ application.company_name }}</h2>
+    </div>
 
-    <form action="{{ url_for('update_application', application_id=application.application_id) }}" method="POST">
+    <p>Update your job application information below.</p>
+
+    <form action="{{ url_for('update_application', application_id=application.application_id) }}"
+          method="POST"
+          novalidate>
+
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
         <label for="company_name">Company Name:</label>
-        <input type="text" id="company_name" name="company_name"
-               value="{{ application.company_name }}" required>
+
+        <input type="text"
+               id="company_name"
+               name="company_name"
+               value="{{ application.company_name }}"
+               maxlength="150"
+               autocomplete="organization"
+               required>
+
 
         <label for="job_title">Job Title:</label>
-        <input type="text" id="job_title" name="job_title"
-               value="{{ application.job_title }}" required>
+
+        <input type="text"
+               id="job_title"
+               name="job_title"
+               value="{{ application.job_title }}"
+               maxlength="150"
+               required>
+
 
         <label for="job_location">Job Location:</label>
-        <input type="text" id="job_location" name="job_location"
-               value="{{ application.job_location }}" required>
+
+        <input type="text"
+               id="job_location"
+               name="job_location"
+               value="{{ application.job_location }}"
+               maxlength="150"
+               required>
+
 
         <label for="interview_date">Interview Date:</label>
-        <input type="date" id="interview_date" name="interview_date"
-               value="{{ application.interview_date }}">
+
+        <input type="date"
+               id="interview_date"
+               name="interview_date"
+               value="{{ application.interview_date or '' }}">
+
 
         <label for="application_status">Application Status:</label>
-        <select id="application_status" name="application_status" required>
+
+        <select id="application_status"
+                name="application_status"
+                required>
+
             {% for status in ["Applied", "Under Review", "Interview", "Offered", "Rejected"] %}
+
                 <option value="{{ status }}"
                     {% if application.application_status == status %}selected{% endif %}>
                     {{ status }}
                 </option>
+
             {% endfor %}
+
         </select>
 
+
         <label for="applicant_name">Applicant Name:</label>
-        <input type="text" id="applicant_name" name="applicant_name"
-               value="{{ application.applicant_name }}" required>
+
+        <input type="text"
+               id="applicant_name"
+               name="applicant_name"
+               value="{{ application.applicant_name }}"
+               maxlength="150"
+               autocomplete="name"
+               required>
+
 
         <label for="contact_email">Contact Email:</label>
-        <input type="email" id="contact_email" name="contact_email"
-               value="{{ application.contact_email }}" required>
+
+        <input type="email"
+               id="contact_email"
+               name="contact_email"
+               value="{{ application.contact_email }}"
+               maxlength="150"
+               autocomplete="email"
+               required>
+
 
         <label for="phone_number">Phone Number:</label>
-        <input type="text" id="phone_number" name="phone_number"
-               value="{{ application.phone_number }}" required>
+
+        <input type="text"
+               id="phone_number"
+               name="phone_number"
+               value="{{ application.phone_number }}"
+               maxlength="50"
+               autocomplete="tel"
+               required>
+
 
         <label for="notes">Notes:</label>
-        <textarea id="notes" name="notes">{{ application.notes }}</textarea>
 
-        <button type="submit">Save Changes</button>
+        <textarea id="notes"
+                  name="notes"
+                  rows="4">{{ application.notes or '' }}</textarea>
+
+
+        <button type="submit">
+            Save Changes
+        </button>
 
     </form>
 
 </main>
 
+
 <footer>
     <p>Job Application Tracker</p>
 </footer>
+
+
 <script src="{{ url_for('static', filename='theme.js') }}"></script>
+<script src="{{ url_for('static', filename='notifications.js') }}" defer></script>
+<script src="{{ url_for('static', filename='form-validation.js') }}" defer></script>
+
 </body>
 </html>

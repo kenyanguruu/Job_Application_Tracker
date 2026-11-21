@@ -518,3 +518,1276 @@ textarea { min-height: 100px; resize: vertical; }
     outline: 2px solid var(--brand);
     outline-offset: 2px;
 }
+/* Floating flash notifications */
+.flash-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    width: min(380px, calc(100% - 40px));
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.flash-container .flash-message {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    animation: notification-slide-in 0.25s ease-out;
+}
+
+.flash-container .flash-message.success {
+    color: #166534;
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+}
+
+.flash-container .flash-message.error,
+.flash-container .flash-message.danger {
+    color: #991b1b;
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+}
+
+.flash-close {
+    flex-shrink: 0;
+    padding: 0 4px;
+    background: transparent;
+    color: inherit;
+    border: none;
+    font-size: 21px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.flash-close:hover {
+    background: transparent;
+    color: inherit;
+    transform: none;
+}
+
+@keyframes notification-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 650px) {
+    .flash-container {
+        top: 12px;
+        right: 12px;
+        width: calc(100% - 24px);
+    }
+}
+/* Mobile application page layout */
+@media (max-width: 650px) {
+    .dashboard-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 18px;
+        padding: 16px;
+    }
+
+    .application-form {
+        width: 100%;
+        max-width: 560px;
+        justify-self: center;
+        box-sizing: border-box;
+        border-radius: 16px;
+        box-shadow: 0 5px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    .applications-table {
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    /* Compact logout button at the top-right */
+    .dashboard-header {
+        position: relative;
+    }
+
+    .dashboard-brand {
+        padding-right: 85px;
+    }
+
+    .logout-form {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        margin: 0;
+    }
+
+    .logout-button {
+        width: auto;
+        padding: 7px 11px;
+        font-size: 13px;
+        border-radius: 7px;
+    }
+}
+/* Applications page mobile navigation */
+@media (max-width: 650px) {
+    body:not(.dashboard-page) > header {
+        padding: 14px 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    body:not(.dashboard-page) > header h1 {
+        font-size: 20px;
+        margin: 0;
+    }
+
+    body:not(.dashboard-page) .main-navigation {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+        gap: 10px;
+    }
+
+    body:not(.dashboard-page) .dashboard-nav-link {
+        padding: 7px 10px;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    body:not(.dashboard-page) .theme-control {
+        gap: 5px;
+        flex-shrink: 0;
+    }
+
+    body:not(.dashboard-page) .theme-control label {
+        display: inline;
+        font-size: 12px;
+    }
+
+    body:not(.dashboard-page) .theme-control select {
+        min-width: 90px;
+        max-width: 105px;
+        padding: 6px 8px;
+        font-size: 13px;
+    }
+
+    /* Smaller buttons inside the application area */
+    body:not(.dashboard-page) .dashboard-container button {
+        width: auto;
+        min-height: 36px;
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+
+    body:not(.dashboard-page) .application-form input,
+    body:not(.dashboard-page) .application-form select,
+    body:not(.dashboard-page) .application-form textarea {
+        font-size: 14px;
+        padding: 9px 10px;
+    }
+}
+/* Dashboard mobile button and navigation improvements */
+@media (max-width: 650px) {
+
+    /* Keep dashboard navigation within the screen */
+    .dashboard-navigation {
+        width: 100%;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding-right: 0;
+    }
+
+    .dashboard-navigation .dashboard-nav-link {
+        padding: 7px 10px;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    /* Compact logout button */
+    .dashboard-navigation .logout-button {
+        width: auto;
+        min-height: 32px;
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    /* Prevent dashboard cards from overflowing */
+    .stats-grid,
+    .dashboard-content-grid {
+        width: 100%;
+        min-width: 0;
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .stat-card {
+        min-width: 0;
+        padding: 16px;
+        box-sizing: border-box;
+    }
+
+    /* Keep dashboard links and cards within their containers */
+    .dashboard-main,
+    .dashboard-panel,
+    .dashboard-footer-card {
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .dashboard-footer-card a {
+        width: auto;
+        max-width: 100%;
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+}
+/* Keep dashboard theme selector aligned to the right on mobile */
+@media (max-width: 650px) {
+    .dashboard-navigation {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .dashboard-navigation .theme-control {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-shrink: 0;
+    }
+
+    .dashboard-navigation .theme-control select {
+        width: 100px;
+        min-width: 100px;
+        padding: 6px 8px;
+        font-size: 13px;
+    }
+}
+
+/* =========================================
+   DASHBOARD PROFESSIONAL ICON STYLES
+========================================= */
+
+.dashboard-page .heading-icon,
+.dashboard-page .panel-icon svg,
+.dashboard-page .schedule-count svg,
+.dashboard-page .interview-company h3 svg,
+.dashboard-page .view-interview svg,
+.dashboard-page .empty-icon svg,
+.dashboard-page .footer-card-icon svg,
+.dashboard-page .dashboard-nav-link svg,
+.dashboard-page .logout-button svg {
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+    vertical-align: middle;
+}
+
+.dashboard-page .heading-icon {
+    display: inline-block;
+    margin-right: 8px;
+    color: var(--brand);
+}
+
+.dashboard-page .panel-icon svg,
+.dashboard-page .schedule-count svg,
+.dashboard-page .interview-company h3 svg,
+.dashboard-page .view-interview svg,
+.dashboard-page .empty-icon svg,
+.dashboard-page .footer-card-icon svg,
+.dashboard-page .dashboard-nav-link svg,
+.dashboard-page .logout-button svg {
+    display: inline-block;
+}
+
+.dashboard-page .interview-company h3,
+.dashboard-page .view-interview,
+.dashboard-page .schedule-count {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* =========================================
+   APPLICATIONS PAGE PROFESSIONAL ICONS
+========================================= */
+
+body:not(.dashboard-page) header h1,
+body:not(.dashboard-page) .section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+body:not(.dashboard-page) header h1 svg {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+}
+
+body:not(.dashboard-page) .section-title svg {
+    width: 22px;
+    height: 22px;
+    color: var(--brand);
+    flex-shrink: 0;
+}
+
+body:not(.dashboard-page) .application-form label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+body:not(.dashboard-page) .application-form label svg {
+    width: 17px;
+    height: 17px;
+    color: var(--brand);
+    flex-shrink: 0;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+body:not(.dashboard-page) .dashboard-nav-link,
+body:not(.dashboard-page) .application-search-form button,
+body:not(.dashboard-page) .application-search-form a,
+body:not(.dashboard-page) .save-application-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+body:not(.dashboard-page) .dashboard-nav-link svg,
+body:not(.dashboard-page) .application-search-form button svg,
+body:not(.dashboard-page) .application-search-form a svg,
+body:not(.dashboard-page) .save-application-button svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+}
+
+/* =========================================
+   FORM VALIDATION FEEDBACK
+========================================= */
+
+body:not(.dashboard-page) .field-error {
+    display: block;
+    color: #dc2626;
+    font-size: 12px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+body:not(.dashboard-page) .application-form input.input-invalid {
+    border-color: #dc2626;
+    outline: 1px solid #dc2626;
+}
+
+body:not(.dashboard-page) .application-form input:focus,
+body:not(.dashboard-page) .application-form select:focus,
+body:not(.dashboard-page) .application-form textarea:focus {
+    outline: 2px solid var(--brand);
+    outline-offset: 1px;
+}
+
+body:not(.dashboard-page) .application-form input.input-invalid:focus {
+    outline-color: #dc2626;
+}
+/* =========================================
+   PREMIUM INTERACTIONS AND ANIMATIONS
+========================================= */
+
+/* Smooth interactions */
+button,
+a,
+input,
+select,
+textarea,
+.stat-card,
+.interview-item,
+.applications-table tbody tr {
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+/* Button hover and click effects */
+button:hover,
+.edit-button:hover,
+.logout-button:hover {
+    transform: translateY(-2px);
+}
+
+button:active,
+.edit-button:active,
+.logout-button:active {
+    transform: translateY(0) scale(0.98);
+}
+
+/* Form field focus effects */
+.application-form input:focus,
+.application-form select:focus,
+.application-form textarea:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+/* Table row hover */
+.applications-table tbody tr:hover {
+    transform: translateX(3px);
+}
+
+/* Dashboard card interaction */
+.stat-card:hover,
+.interview-item:hover {
+    transform: translateY(-3px);
+}
+
+/* Respect reduced-motion accessibility preferences */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+/* =========================================
+   PREMIUM VISUAL POLISH
+========================================= */
+
+/* Consistent page typography */
+h1, h2, h3, h4 {
+    letter-spacing: -0.025em;
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Premium panels */
+.application-form,
+.applications-table,
+.dashboard-panel,
+.details-container,
+.interview-schedule {
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+}
+
+/* Form section headings */
+.section-title,
+.panel-heading h2 {
+    font-weight: 750;
+    letter-spacing: -0.02em;
+}
+
+/* Form labels */
+.application-form label {
+    font-size: 13px;
+    font-weight: 650;
+}
+
+/* Refined form controls */
+.application-form input,
+.application-form select,
+.application-form textarea {
+    border-radius: 10px;
+    min-height: 44px;
+}
+
+/* Better table presentation */
+.applications-table table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.applications-table th {
+    font-size: 12px;
+    font-weight: 750;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    background: var(--surface-secondary);
+}
+
+.applications-table td,
+.applications-table th {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.applications-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+/* Dashboard cards */
+.stat-card {
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.stat-card h3 {
+    font-weight: 800;
+    letter-spacing: -0.04em;
+}
+
+/* Dashboard panel headings */
+.panel-heading {
+    margin-bottom: 20px;
+}
+
+/* Buttons */
+button,
+.edit-button,
+.delete-button,
+.logout-button {
+    border-radius: 9px;
+    font-weight: 650;
+    letter-spacing: 0.01em;
+}
+
+/* Status badges and labels */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 11px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+/* Keep content readable on small screens */
+@media (max-width: 600px) {
+    .application-form,
+    .applications-table,
+    .dashboard-panel {
+        border-radius: 12px;
+        box-shadow: none;
+    }
+
+    .applications-table td,
+    .applications-table th {
+        padding: 11px 10px;
+    }
+
+    .stat-card {
+        padding: 18px;
+    }
+}
+/* =========================================
+   APPLICATION STATUS BADGES
+========================================= */
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+
+/* Applied - Blue */
+.status-applied {
+    background: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+/* Under Review - Purple */
+.status-under-review {
+    background: rgba(139, 92, 246, 0.15);
+    color: #a78bfa;
+    border-color: rgba(139, 92, 246, 0.3);
+}
+
+/* Interview - Green */
+.status-interview {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+/* Offered - Amber */
+.status-offered {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+/* Rejected - Red */
+.status-rejected {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Better contrast in light theme */
+[data-theme="light"] .status-applied {
+    color: #1d4ed8;
+}
+
+[data-theme="light"] .status-under-review {
+    color: #6d28d9;
+}
+
+[data-theme="light"] .status-interview {
+    color: #047857;
+}
+
+[data-theme="light"] .status-offered {
+    color: #b45309;
+}
+
+[data-theme="light"] .status-rejected {
+    color: #b91c1c;
+}
+
+/* =========================================
+   PREMIUM APPLICATION DETAILS PAGE
+========================================= */
+
+.details-page {
+    min-width: 0;
+}
+
+.details-header {
+    flex-wrap: wrap;
+}
+
+.details-header h1 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.details-navigation {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.details-navigation form {
+    margin: 0;
+}
+
+.details-container {
+    width: calc(100% - 40px);
+    max-width: 1050px;
+    margin: 40px auto;
+    padding: 30px;
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+}
+
+.details-intro {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    padding-bottom: 25px;
+    margin-bottom: 25px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.details-eyebrow {
+    display: block;
+    margin-bottom: 9px;
+    color: var(--brand);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+}
+
+.details-intro h2 {
+    margin: 0 0 8px;
+    color: var(--text-primary);
+    font-size: 30px;
+    overflow-wrap: anywhere;
+}
+
+.details-intro p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 15px;
+}
+
+.details-status {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 9px;
+}
+
+.details-status-label {
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.details-section {
+    margin-bottom: 28px;
+}
+
+.details-section h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 17px;
+    color: var(--text-primary);
+    font-size: 17px;
+}
+
+.details-section h3 svg {
+    flex-shrink: 0;
+    color: var(--brand);
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.detail-card {
+    min-width: 0;
+    padding: 17px;
+    background: var(--surface-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+}
+
+.detail-card span {
+    display: block;
+    margin-bottom: 7px;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.detail-card strong {
+    display: block;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 650;
+    overflow-wrap: anywhere;
+}
+
+.detail-break {
+    word-break: break-word;
+}
+
+.details-notes {
+    min-height: 85px;
+    padding: 18px;
+    color: var(--text-secondary);
+    background: var(--surface-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+
+.details-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 22px;
+    border-top: 1px solid var(--border-color);
+}
+
+.details-actions a {
+    text-decoration: none;
+}
+
+/* Mobile layout */
+@media (max-width: 650px) {
+
+    .details-header {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 16px;
+        gap: 15px;
+    }
+
+    .details-header h1 {
+        font-size: 21px;
+    }
+
+    .details-navigation {
+        width: 100%;
+        justify-content: flex-start;
+        gap: 9px;
+    }
+
+    .details-navigation > a,
+    .details-navigation > form {
+        max-width: 100%;
+    }
+
+    .details-navigation form button {
+        width: auto;
+    }
+
+    .details-navigation .theme-control {
+        margin-left: auto;
+    }
+
+    .details-container {
+        width: calc(100% - 24px);
+        margin: 18px auto;
+        padding: 17px;
+        border-radius: 13px;
+    }
+
+    .details-intro {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 17px;
+    }
+
+    .details-intro h2 {
+        font-size: 24px;
+    }
+
+    .details-status {
+        align-items: flex-start;
+    }
+
+    .details-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+    }
+
+    .detail-card {
+        padding: 14px;
+    }
+
+    .details-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .details-actions a {
+        text-align: center;
+    }
+}
+
+
+/* APPLICATION DETAILS - FIX TOP BAR BUTTON SIZING */
+
+@media (max-width: 650px) {
+
+    body.details-page .details-header {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    body.details-page .details-navigation {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 8px;
+        width: 100%;
+    }
+
+    body.details-page .details-navigation > a.dashboard-nav-link,
+    body.details-page .details-navigation > form > button.delete-button {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto !important;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        min-height: 34px;
+        padding: 7px 10px !important;
+        margin: 0 !important;
+        font-size: 11px !important;
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+
+    body.details-page .details-navigation > form {
+        display: inline-flex;
+        flex: 0 0 auto !important;
+        width: auto !important;
+        margin: 0 !important;
+    }
+
+    body.details-page .details-navigation .theme-control {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-left: auto;
+        flex: 0 0 auto;
+    }
+
+    body.details-page .details-navigation .theme-control select {
+        width: auto;
+        min-height: 32px;
+        padding: 5px 7px;
+        font-size: 11px;
+    }
+
+}
+
+/* DETAILS PAGE - ALIGN ALL MOBILE TOP BAR CONTROLS */
+
+@media (max-width: 650px) {
+
+    body.details-page .details-navigation {
+        display: grid !important;
+        grid-template-columns: max-content max-content minmax(0, 1fr);
+        align-items: center !important;
+        justify-content: initial !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+
+    body.details-page .details-navigation > a.dashboard-nav-link {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        width: auto !important;
+        min-height: 34px;
+        margin: 0 !important;
+        padding: 7px 9px !important;
+        font-size: 11px !important;
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+
+    body.details-page .details-navigation > form {
+        display: flex !important;
+        align-items: center;
+        width: auto !important;
+        margin: 0 !important;
+    }
+
+    body.details-page .details-navigation > form > button.delete-button {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        width: auto !important;
+        min-height: 34px;
+        margin: 0 !important;
+        padding: 7px 9px !important;
+        font-size: 11px !important;
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+
+    body.details-page .details-navigation > .theme-control {
+        display: flex !important;
+        align-items: center;
+        justify-self: end;
+        gap: 4px;
+        margin: 0 !important;
+        min-width: 0;
+    }
+
+    body.details-page .details-navigation .theme-control label {
+        font-size: 11px;
+    }
+
+    body.details-page .details-navigation .theme-control select {
+        width: 85px !important;
+        min-width: 85px;
+        min-height: 34px;
+        margin: 0;
+        padding: 5px;
+        font-size: 11px;
+    }
+}
+/* DETAILS PAGE - MOBILE NAVIGATION */
+/* DETAILS PAGE - MOBILE NAVIGATION */
+/* DETAILS PAGE - MOBILE NAVIGATION */
+@media (max-width: 650px) {
+
+    body.details-page .details-navigation {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+        gap: 10px !important;
+        width: 100% !important;
+        align-items: center !important;
+    }
+
+    /* Back button */
+    body.details-page .details-navigation > a.dashboard-nav-link {
+        grid-column: 1 / -1 !important;
+        grid-row: 1 !important;
+        justify-self: start !important;
+        width: auto !important;
+        min-width: 125px !important;
+        min-height: 36px !important;
+        padding: 8px 12px !important;
+        margin: 0 !important;
+        font-size: 12px !important;
+        white-space: nowrap !important;
+    }
+
+    /* Delete button */
+    body.details-page .details-navigation > form {
+        grid-column: 1 !important;
+        grid-row: 2 !important;
+        width: 100% !important;
+        margin: 0 !important;
+    }
+
+    body.details-page .details-navigation > form > button.delete-button {
+        width: 100% !important;
+        min-height: 36px !important;
+        padding: 8px 6px !important;
+        margin: 0 !important;
+        font-size: 11px !important;
+        white-space: nowrap !important;
+    }
+
+    /* Theme selector beside Delete */
+    body.details-page .details-navigation > .theme-control {
+        grid-column: 2 !important;
+        grid-row: 2 !important;
+        justify-self: end !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        margin: 0 !important;
+        width: auto !important;
+    }
+
+    body.details-page .details-navigation .theme-control label {
+        font-size: 11px;
+    }
+
+    body.details-page .details-navigation .theme-control select {
+        width: 90px !important;
+        min-width: 90px !important;
+        min-height: 36px;
+        padding: 5px;
+        font-size: 11px;
+    }
+}
+/* =====================================================
+   CUSTOM DELETE CONFIRMATION DIALOG
+===================================================== */
+
+.delete-dialog {
+    width: min(420px, calc(100% - 32px));
+    max-width: 420px;
+    padding: 0;
+    border: 1px solid var(--border-color, #334155);
+    border-radius: 18px;
+    background: var(--card-bg);
+    color: var(--text-color);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+}
+
+.delete-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+}
+
+.delete-dialog[open] {
+    animation: delete-dialog-appear 0.22s ease-out;
+}
+
+@keyframes delete-dialog-appear {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.delete-dialog-content {
+    padding: 30px 26px 25px;
+    text-align: center;
+}
+
+.delete-dialog-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    margin: 0 auto 17px;
+    border-radius: 50%;
+    background: rgba(220, 38, 38, 0.12);
+    color: #ef4444;
+    font-size: 30px;
+    font-weight: 800;
+}
+
+.delete-dialog-content h2 {
+    margin: 0 0 12px;
+    color: var(--text-color);
+    font-size: 21px;
+}
+
+.delete-dialog-content p {
+    margin: 0 auto 25px;
+    max-width: 340px;
+    color: var(--text-muted, #94a3b8);
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.delete-dialog-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.delete-dialog-actions button {
+    min-height: 42px;
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 9px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+    transition: background-color 0.2s ease,
+                transform 0.2s ease;
+}
+
+.cancel-delete-button {
+    background: var(--input-bg, #334155);
+    color: var(--text-color);
+}
+
+.confirm-delete-button {
+    background: #dc2626;
+    color: #ffffff;
+}
+
+.cancel-delete-button:hover,
+.confirm-delete-button:hover {
+    transform: translateY(-2px);
+}
+
+.confirm-delete-button:hover {
+    background: #b91c1c;
+}
+
+@media (max-width: 480px) {
+    .delete-dialog-content {
+        padding: 25px 18px 20px;
+    }
+
+    .delete-dialog-actions {
+        gap: 8px;
+    }
+
+    .delete-dialog-actions button {
+        flex: 1;
+        min-width: 0;
+        padding: 10px 8px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .delete-dialog {
+        width: calc(100% - 48px);
+        max-width: 340px;
+        border-radius: 14px;
+    }
+
+    .delete-dialog-content {
+        padding: 20px 16px 17px;
+    }
+
+    .delete-dialog-icon {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 12px;
+        font-size: 23px;
+    }
+
+    .delete-dialog-content h2 {
+        font-size: 17px;
+        margin-bottom: 8px;
+    }
+
+    .delete-dialog-content p {
+        font-size: 12px;
+        line-height: 1.5;
+        margin-bottom: 17px;
+    }
+
+    .delete-dialog-actions {
+        gap: 8px;
+    }
+
+    .delete-dialog-actions button {
+        flex: 1;
+        min-width: 0;
+        min-height: 36px;
+        padding: 8px 6px;
+        font-size: 11px;
+    }
+}
