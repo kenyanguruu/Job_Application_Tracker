@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f172a">
+    <title>Email Verification | JobTracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='theme.js') }}" defer></script>
+</head>
+<body class="auth-page">
+    <header class="auth-topbar">
+        <a class="auth-brand" href="{{ url_for('login') }}">
+            <span class="auth-brand-mark">JT</span>
+            <span>JobTracker</span>
+        </a>
+        <div class="theme-control">
+            <label for="theme-select">Theme</label>
+            <select id="theme-select" aria-label="Choose color theme">
+                <option value="system">System</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+            </select>
+        </div>
+    </header>
+
+    <main class="auth-container">
+        <section class="auth-card">
+            <h1>Check your email</h1>
+            <p>Enter the six-digit verification code we sent to this address.</p>
+            <div class="otp-email">{{ email }}</div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}" role="alert">{{ message }}</div>
+                {% endfor %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('verify_otp_page') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="form-group">
+                    <label for="otp">Verification code</label>
+                    <input type="text" id="otp" name="otp"
+                           placeholder="000000" inputmode="numeric"
+                           pattern="[0-9]{6}" maxlength="6"
+                           autocomplete="one-time-code"
+                           aria-describedby="otp-help" required autofocus>
+                    <small id="otp-help" class="auth-help">The code expires after five minutes.</small>
+                </div>
+                <button type="submit">Verify and continue</button>
+            </form>
+
+            <form method="POST" action="{{ url_for('resend_otp') }}" class="auth-secondary-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit">Resend verification code</button>
+            </form>
+
+            <a class="auth-back-link" href="{{ url_for('login') }}">Back to sign in</a>
+            <div class="auth-footnote">If you did not request this code, you can ignore this email.</div>
+        </section>
+    </main>
+</body>
+</html>

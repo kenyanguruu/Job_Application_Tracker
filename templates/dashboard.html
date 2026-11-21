@@ -40,6 +40,17 @@
                 <option value="dark">Dark</option>
             </select>
         </div>
+        <form action="{{ url_for('logout') }}"
+            method="POST"
+            class="logout-form">
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <button type="submit" class="logout-button">
+                Log Out
+            </button>
+
+        </form>
     </nav>
 
 </header>
@@ -327,37 +338,7 @@
     <p>JobTracker &copy; 2026 | Your career journey, organized.</p>
 </footer>
 
-<header class="dashboard-header">
 
-    <div class="dashboard-brand">
-        <div class="brand-icon">JT</div>
-        <div>
-            <h1>JobTracker</h1>
-            <p>Application Management</p>
-        </div>
-    </div>
-
-    <nav class="dashboard-navigation">
-        <a href="{{ url_for('home') }}" class="dashboard-nav-link">
-            <svg viewBox="0 0 24 24">
-                <path d="m3 10 9-7 9 7"></path>
-                <path d="M5 9v12h14V9"></path>
-                <path d="M9 21v-7h6v7"></path>
-            </svg>
-            Applications
-        </a>
-
-        <div class="theme-control">
-            <label for="theme-select">Theme:</label>
-            <select id="theme-select">
-                <option value="system">System</option>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-            </select>
-        </div>
-    </nav>
-
-</header>
-<script src="{{ url_for('static', filename='theme.js') }}"></script>
+<script src="{{ url_for('static', filename='theme.js') }}" defer></script>
 </body>
 </html>

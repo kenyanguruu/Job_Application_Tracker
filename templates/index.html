@@ -39,6 +39,7 @@
     <section class="application-form">
     
 <form action="/add-application" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
     <label for="company_name">Company Name:</label>
     <input type="text" id="company_name" name="company_name" required>

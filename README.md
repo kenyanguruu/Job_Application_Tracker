@@ -1,177 +1,78 @@
-# Job Application Tracker
+﻿# Job Application Tracker
 
-## Project Overview
-
-The Job Application Tracker is a Python-based command-line application designed to help job seekers manage and monitor their job applications.
-
-It allows users to record job applications, update application details, search for applications, track application statuses, and view application statistics through a dashboard.
-
-The application uses CSV files to store application records, making it simple to manage data without requiring a database.
+A secure Flask application for tracking job applications.
 
 ## Features
 
-- Add new job applications.
-- View all recorded job applications.
-- Update existing application details.
-- Delete job applications.
-- Archive deleted applications.
-- Search applications by:
-  - Company name
-  - Job title
-  - Application status
-  - Job location
-  - Application ID
-- Track application statuses.
-- Record interview dates.
-- Store applicant contact information.
-- Add optional notes to applications.
-- View application statistics through a dashboard.
-- Automatically generate application IDs.
-- Validate user input.
-- Store application records using CSV files.
+- User registration and OTP email verification
+- Email/password login and Google OAuth
+- Add, view, edit, search and delete applications
+- Archive applications
+- Personal dashboard and statistics
+- User-specific application records
+- CSRF protection
+- SQLite locally and PostgreSQL in production
 
-## Technologies Used
+## Technology
 
-- Python 3
-- CSV module
-- OS module
-- Datetime module
-- Pytest (automated testing, to be completed)
-- Git and GitHub
-
-## Project Structure
-
-```text
-Job_Application_Tracker/
-│
-├── applications.py
-├── dashboard.py
-├── main.py
-├── storage.py
-├── README.md
-│
-├── data/
-│   ├── applications.csv
-│   ├── applications_backup.csv
-│   ├── deleted_applications.csv
-│   ├── next_application_id.txt
-│   └── backup files
-│
-└── tests/
-    └── test_applications.py
-```
+- Python and Flask
+- Flask-Login and Flask-WTF
+- Flask-SQLAlchemy and SQLAlchemy
+- Authlib for Google OAuth
+- PostgreSQL and SQLite
+- HTML, CSS and JavaScript
 
 ## Installation
 
-### 1. Clone the repository
+Clone the repository:
 
-```bash
-git clone YOUR_GITHUB_REPOSITORY_URL
-```
+    git clone https://github.com/kenyanguruu/Job_Application_Tracker.git
+    cd Job_Application_Tracker
 
-### 2. Navigate into the project folder
+Install dependencies:
 
-```bash
-cd Job_Application_Tracker
-```
+    python -m pip install -r requirements.txt
 
-### 3. Make sure Python is installed
+## Environment Variables
 
-Check your Python version:
+Create a local `.env` file containing your own configuration:
 
-```bash
-python --version
-```
+    SECRET_KEY=your-long-random-secret
+    GOOGLE_CLIENT_ID=your-google-client-id
+    GOOGLE_CLIENT_SECRET=your-google-client-secret
+    GOOGLE_REDIRECT_URI=http://127.0.0.1:5000/auth/google/callback
+    MAIL_SERVER=your-smtp-server
+    MAIL_PORT=587
+    MAIL_USERNAME=your-email
+    MAIL_PASSWORD=your-email-app-password
+    COOKIE_SECURE=False
+    FLASK_DEBUG=True
 
-### 4. Run the application
+Never commit `.env` or publish your credentials.
 
-```bash
-python main.py
-```
+## Run Locally
 
-## How to Use
+    python app.py
 
-After starting the application, the main menu displays the following options:
+Open:
 
-1. Add Job Application
-2. View All Applications
-3. Update Application
-4. Delete Application
-5. Search Applications
-6. View Dashboard
-7. Exit
+    http://127.0.0.1:5000
 
-### Add Job Application
+## Tests
 
-Enter the requested information, including company name, job title, location, application status, contact information, and optional notes.
+    python -m pytest
 
-The application automatically generates a unique application ID.
+## Production Deployment
 
-### View All Applications
+The application supports PostgreSQL through the `DATABASE_URL` environment variable.
 
-Displays all active job applications and their recorded information.
+For Render:
 
-### Update Application
+- Build command: `pip install -r requirements.txt`
+- Start command: `gunicorn app:app`
+- Configure `SECRET_KEY`, `DATABASE_URL`, email settings and Google OAuth settings in the service environment.
+- Set the Google OAuth redirect URI to your deployed domain:
+  `https://YOUR-RENDER-DOMAIN/auth/google/callback`
+- Set `COOKIE_SECURE=True` in production.
 
-Allows users to update existing application details, including company information, application status, interview date, contact information, and notes.
-
-### Delete Job Application
-
-Allows users to remove an application from active records.
-
-A copy of the deleted application is saved in the deleted applications archive.
-
-### Search Applications
-
-Users can search for applications using company name, job title, application status, job location, or application ID.
-
-### View Dashboard
-
-Displays statistics about recorded applications, including:
-
-- Total applications
-- Applications by status
-- Interview statistics
-- Interview rate
-- Offer rate
-- Scheduled interviews
-
-### Exit
-
-Closes the application.
-
-## Data Storage
-
-The application uses CSV files to store job application records.
-
-- `applications.csv` stores active applications.
-- `deleted_applications.csv` stores archived applications.
-- `next_application_id.txt` helps maintain application ID numbering.
-
-CSV storage makes the application easy to use and does not require a database server.
-
-## Testing
-
-The project includes a `tests/` directory for automated tests using pytest.
-
-Run the tests with:
-
-```bash
-python -m pytest
-```
-
-## Future Improvements
-
-- Migrate CSV storage to an SQLite database.
-- Build a web application using Flask.
-- Add HTML and CSS for the user interface.
-- Improve automated test coverage.
-- Add more advanced application analytics.
-
-## Author
-
-Job Application Tracker Project
-
-## License
-
-This project is intended for educational and personal development purposes.
+Note: Existing local SQLite records are not automatically transferred to PostgreSQL.

@@ -1,51 +1,69 @@
-const themeSelect = document.getElementById("theme-select");
 
-const savedTheme = localStorage.getItem("jobtracker-theme") || "system";
+(() => {
+    "use strict";
 
+    const THEME_KEY = "jobtracker-theme";
+    const themeSelect = document.getElementById("theme-select");
+    const root = document.documentElement;
+    const systemPreference = window.matchMedia("(prefers-color-scheme: dark)");
 
-function applyTheme(theme) {
+    function applyTheme(preference) {
+        const effectiveTheme = preference === "system"
+            ? (systemPreference.matches ? "dark" : "light")
+            : preference;
 
-    const prefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)"
-    ).matches;
+        root.setAttribute("data-theme", effectiveTheme);
 
-    let effectiveTheme = theme;
-
-    if (theme === "system") {
-        effectiveTheme = prefersDark ? "dark" : "light";
+        if (themeSelect) {
+            themeSelect.value = preference;
+        }
     }
 
-    document.documentElement.setAttribute(
-        "data-theme",
-        effectiveTheme
-    );
+    // Dark is the default for new users.
+    let savedTheme = "dark";
+
+    try {
+        const stored = localStorage.getItem(THEME_KEY);
+
+        if (["light", "dark", "system"].includes(stored)) {
+            savedTheme = stored;
+        }
+    } catch (error) {
+        // Continue using dark mode if storage is unavailable.
+    }
+
+    applyTheme(savedTheme);
 
     if (themeSelect) {
-        themeSelect.value = theme;
+        themeSelect.addEventListener("change", () => {
+            const selected = themeSelect.value;
+
+            if (!["light", "dark", "system"].includes(selected)) {
+                return;
+            }
+
+            try {
+                localStorage.setItem(THEME_KEY, selected);
+            } catch (error) {
+                // Theme still works for this page.
+            }
+
+            applyTheme(selected);
+        });
     }
-}
 
+    if (typeof systemPreference.addEventListener === "function") {
+        systemPreference.addEventListener("change", () => {
+            if (savedTheme === "system") {
+                applyTheme("system");
+            }
+        });
+    }
 
-// Apply the saved theme when the page loads
-
-applyTheme(savedTheme);
-
-
-// Save and apply a new theme when selected
-
-if (themeSelect) {
-
-    themeSelect.addEventListener("change", function () {
-
-        const selectedTheme = this.value;
-
-        localStorage.setItem(
-            "jobtracker-theme",
-            selectedTheme
-        );
-
-        applyTheme(selectedTheme);
-
-    });
-
-}
+    // Keep track of the current preference.
+    if (themeSelect) {
+        themeSelect.addEventListener("change", () => {
+            savedTheme = themeSelect.value;
+        });
+    }
+})();

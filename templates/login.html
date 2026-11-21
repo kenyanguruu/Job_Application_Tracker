@@ -1,0 +1,126 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f172a">
+    <title>Sign In | JobTracker</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='theme.js') }}" defer></script>
+</head>
+
+<body class="auth-page">
+
+    <header class="auth-topbar">
+        <a class="auth-brand" href="{{ url_for('login') }}">
+            <span class="auth-brand-mark">JT</span>
+            <span>JobTracker</span>
+        </a>
+
+        <div class="theme-control">
+            <label for="theme-select">Theme</label>
+            <select id="theme-select" aria-label="Choose color theme">
+                <option value="system">System</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+            </select>
+        </div>
+    </header>
+
+    <main class="auth-container">
+
+        <section class="auth-card">
+
+            <h1>Welcome back</h1>
+            <p>Sign in to continue managing your job search.</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endwith %}
+
+            <!-- Google Sign In -->
+            <a href="{{ url_for('google_login') }}" class="google-login-button">
+
+                <svg class="google-icon"
+                     xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 48 48"
+                     aria-hidden="true">
+
+                    <path fill="#EA4335"
+                          d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+
+                    <path fill="#4285F4"
+                          d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.73 7.18l7.28 5.65c4.25-3.92 7.49-9.72 7.49-17.3z"/>
+
+                    <path fill="#FBBC05"
+                          d="M10.54 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.12.75-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.88.93 7.55 2.56 10.78l7.98-6.19z"/>
+
+                    <path fill="#34A853"
+                          d="M24 48c6.48 0 11.93-2.13 15.9-5.8l-7.28-5.65c-2.02 1.35-4.6 2.15-8.62 2.15-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+
+                </svg>
+
+                Continue with Google
+
+            </a>
+
+            <div class="auth-divider">
+                <span>OR SIGN IN WITH EMAIL</span>
+            </div>
+
+            <!-- Email Login -->
+            <form method="POST" action="{{ url_for('login') }}">
+
+                <input type="hidden"
+                       name="csrf_token"
+                       value="{{ csrf_token() }}">
+
+                <div class="form-group">
+                    <label for="email">Email address</label>
+
+                    <input type="email"
+                           id="email"
+                           name="email"
+                           placeholder="you@example.com"
+                           autocomplete="email"
+                           maxlength="150"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+
+                    <input type="password"
+                           id="password"
+                           name="password"
+                           placeholder="Enter your password"
+                           autocomplete="current-password"
+                           required>
+                </div>
+
+                <button type="submit">Sign in</button>
+
+            </form>
+
+            <p>
+                Don't have an account?
+                <a href="{{ url_for('register') }}">Create an account</a>
+            </p>
+
+            <div class="auth-footnote">
+                Your job search, organized in one place.
+            </div>
+
+        </section>
+
+    </main>
+
+</body>
+</html>
+```

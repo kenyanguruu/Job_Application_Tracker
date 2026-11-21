@@ -1,4 +1,4 @@
-﻿# Python cache files
+﻿# Python cache
 __pycache__/
 *.py[cod]
 
@@ -9,8 +9,21 @@ env/
 
 # Test cache
 .pytest_cache/
+.coverage
+htmlcov/
 
-# Personal application records and backups
-data/
 # Environment variables and secrets
 .env
+.env.*
+!.env.example
+
+# SQLite databases and private records
+instance/
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Backups
+*.backup
+*_backup.py

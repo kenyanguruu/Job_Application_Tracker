@@ -40,7 +40,7 @@
     <h2>Edit {{ application.company_name }}</h2>
 
     <form action="{{ url_for('update_application', application_id=application.application_id) }}" method="POST">
-
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <label for="company_name">Company Name:</label>
         <input type="text" id="company_name" name="company_name"
                value="{{ application.company_name }}" required>
